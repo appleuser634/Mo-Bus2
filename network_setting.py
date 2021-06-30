@@ -21,10 +21,9 @@ def connect_network(ssid, password):
     loading_charas = ['\\','|','/','-']
     loop_animation(loading_charas,10)
 
-    if not wlan.isconnected:
-        while not wlan.isconnected:
-            loop_animation(loading_charas,1)
-            wlan.connect(ssid, password)
+    while not wlan.isconnected():
+        wlan.connect(ssid, password)
+        loop_animation(loading_charas,4)
 
     oled.fill(0)
     oled.text("ON LINE!!", 30, 30)

@@ -1,5 +1,6 @@
 from machine import Pin, I2C
 from ssd1306 import SSD1306_I2C
+from machine import Pin
 import time
 
 import boot_display
@@ -8,8 +9,64 @@ import network_setting
 i2c = I2C(scl=Pin(4), sda=Pin(5))
 oled = SSD1306_I2C(128, 64, i2c)
 
+s1 = Pin(22, Pin.IN, Pin.PULL_UP)
+
 oled.fill(0)
 oled.show()
 
 boot_display.boot_animation()
 network_setting.connect_network('HUMAX-E938C','MmdhdGR3LThFM')
+
+def encode_morse(morse):
+
+    morse_list = {"._":"A","_...":"B","_._.":"C","_..":"D",".":"E",".._.":"F",\
+                "__.":"G","....":"H","..":"I",".___":"J","_._":"K","._..":"L",\
+                "__":"M","_.":"N","___":"O",".__.":"P","__._":"Q","._.":"R",\
+                "...":"S","_":"T",".._":"U","..._":"V",".__":"W","_.._":"X",\
+                "_.__":"Y","__..":"Z","...._.":"!","......":"?","_.....":"(",\
+                "__....":")","___...":":",".____":"1","..___":"2","...__":"3",\
+                "...._":"4",".....":"5","_....":"6","__...":"7","___..":"8",\
+                "____.":"9","_____":"0","____":"del","...._.":"!","..__..":"?","_.__.":"(","_.__._":")","___...":":"}
+    try:
+        return morse_list[morse]
+    except KeyError:
+        return ""
+
+def type_message():
+ 
+    pressing_flag = False
+    p_start = time.ticks_ms()
+    p_end = time.ticks_ms()
+    temp_text = ""
+    show_text = ""
+    while True:
+        oled.fill(0)
+        
+        if s1.value() == 0 and pressing_flag == False:
+            p_start = time.ticks_ms()
+            pressing_flag = True
+            print("PUSH!")
+        elif s1.value() == 1 and pressing_flag == True:
+            pressing_time = time.ticks_diff(time.ticks_ms(), p_start)
+            p_end = time.ticks_ms()    
+            pressing_flag = False
+            print("No Push!")
+            print("Pressing Time:",pressing_time)
+            if pressing_time > 200:
+                temp_text += "_"
+            else:
+                temp_text += "."
+
+        release_time = time.ticks_diff(time.ticks_ms(), p_end)
+        if release_time > 800:
+            show_text += encode_morse(temp_text)
+            temp_text = ""
+
+        oled.text(show_text,10,10)
+        oled.show()
+
+def main():
+    type_message()
+
+if __name__ == "__main__":
+    main()
