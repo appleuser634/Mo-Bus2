@@ -2,6 +2,7 @@ import network
 from machine import Pin, I2C
 from ssd1306 import SSD1306_I2C
 import time
+import sys
 
 i2c = I2C(scl=Pin(4), sda=Pin(5))
 oled = SSD1306_I2C(128, 64, i2c)
@@ -22,8 +23,11 @@ def connect_network(ssid, password):
     loop_animation(loading_charas,10)
 
     while not wlan.isconnected():
-        wlan.connect(ssid, password)
-        loop_animation(loading_charas,4)
+        try:
+            wlan.connect(ssid, password)
+            loop_animation(loading_charas,4)
+        except Exception as e:
+            sys.print_exception(e) 
 
     oled.fill(0)
     oled.text("ON LINE!!", 30, 30)

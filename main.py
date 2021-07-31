@@ -2,6 +2,9 @@ from machine import Pin, I2C
 from ssd1306 import SSD1306_I2C
 from machine import Pin
 import time
+import sys
+import urequests
+import ujson
 
 import boot_display
 import network_setting
@@ -10,12 +13,16 @@ i2c = I2C(scl=Pin(4), sda=Pin(5))
 oled = SSD1306_I2C(128, 64, i2c)
 
 s1 = Pin(22, Pin.IN, Pin.PULL_UP)
+s2 = Pin(23, Pin.IN, Pin.PULL_UP)
 
 oled.fill(0)
 oled.show()
 
 boot_display.boot_animation()
-network_setting.connect_network('HUMAX-E938C','MmdhdGR3LThFM')
+try:
+    network_setting.connect_network('HUMAX-E938C','MmdhdGR3LThFM')
+except OSError:
+    sys.exit()
 
 def encode_morse(morse):
 
@@ -31,6 +38,39 @@ def encode_morse(morse):
         return morse_list[morse]
     except KeyError:
         return ""
+
+def send_message(message):
+    url = 'http://192.168.0.167:8000/api/messages/'
+    powerdata = { 
+        "fromUser" : 5,
+        "toUser": 8,
+        "message" : message
+        }
+
+    header = {'Content-Type' : 'application/json'}
+
+    res = urequests.post(
+        url,
+		data = ujson.dumps(powerdata).encode("utf-8"),
+		headers = header
+	)
+
+    print(res.json())
+    res.close()
+
+def send_animation():
+    
+    for i in range(3):
+        oled.fill(0)
+        pled.show()
+
+        time.sleep(0.5)
+
+        oled.text("Sending...",60,20)
+        oled.show()
+
+    oled.fill(0)
+    oled.show()
 
 def type_message():
  
@@ -64,6 +104,10 @@ def type_message():
 
         oled.text(show_text,10,10)
         oled.show()
+
+        if s2.value() == 0:
+            send_message(show_text)
+            show_text = ""
 
 def main():
     type_message()
