@@ -119,7 +119,26 @@ def type_message():
             send_message(show_text)
             show_text = ""
 
+def mode_menu():
+    
+    mode_list = {"Internet":(10,10),"Local":(10,20),"Plactice":(10,30)}
+    menu_index = 0
+
+    while True:
+        oled.fill(0)
+        for i, mode in enumerate(mode_list):
+            x = mode_list[mode][0]
+            y = mode_list[mode][1]
+            if i == 0: 
+                oled.fill_rect(0, 9, 128, 10, 1)
+                oled.text(mode, x, y, 0) 
+            else:
+                oled.text(mode,x,y)
+        oled.show()
+
+
 def main():
+    mode_menu()
     type_message()
 
 if __name__ == "__main__":
