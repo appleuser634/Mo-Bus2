@@ -32,7 +32,7 @@ def encode_morse(morse):
                 "_.__":"Y","__..":"Z","...._.":"!","......":"?","_.....":"(",\
                 "__....":")","___...":":",".____":"1","..___":"2","...__":"3",\
                 "...._":"4",".....":"5","_....":"6","__...":"7","___..":"8",\
-                "____.":"9","_____":"0","____":"del","...._.":"!","..__..":"?","_.__.":"(","_.__._":")","___...":":"}
+                "____.":"9","_____":"0","...._.":"!","..__..":"?","_.__.":"(","_.__._":")","___...":":","........":"del"}
     try:
         return morse_list[morse]
     except KeyError:
@@ -106,7 +106,10 @@ def type_message():
 
         release_time = time.ticks_diff(time.ticks_ms(), p_end)
         if release_time > 800:
-            show_text += encode_morse(temp_text)
+            if encode_morse(temp_text) == "del":
+                show_text = show_text[:-1]
+            else:
+                show_text += encode_morse(temp_text)
             temp_text = ""
 
         oled.text(show_text,10,10)
