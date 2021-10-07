@@ -1,6 +1,5 @@
-from machine import Pin, I2C
+from machine import Pin, I2C, PWM
 from ssd1306 import SSD1306_I2C
-from machine import Pin
 import time
 import sys
 import urequests
@@ -58,11 +57,13 @@ def send_message(message):
     print(res.json())
     res.close()
 
+    send_animation()
+
 def send_animation():
     
     for i in range(3):
         oled.fill(0)
-        pled.show()
+        oled.show()
 
         time.sleep(0.5)
 
@@ -79,6 +80,10 @@ def type_message():
     p_end = time.ticks_ms()
     temp_text = ""
     show_text = ""
+    
+    buzzer = PWM(Pin(17), freq=0, duty=512)
+    buzzer.deinit()             
+    
     while True:
         oled.fill(0)
         
@@ -86,10 +91,12 @@ def type_message():
             p_start = time.ticks_ms()
             pressing_flag = True
             print("PUSH!")
+            buzzer = PWM(Pin(17), freq=1600, duty=512) 
         elif s1.value() == 1 and pressing_flag == True:
             pressing_time = time.ticks_diff(time.ticks_ms(), p_start)
             p_end = time.ticks_ms()    
             pressing_flag = False
+            buzzer.deinit()
             print("No Push!")
             print("Pressing Time:",pressing_time)
             if pressing_time > 200:
