@@ -1,4 +1,4 @@
-from machine import Pin, I2C, PWM
+from machine import Pin, I2C, PWM, Timer
 from ssd1306 import SSD1306_I2C
 import time
 import sys
@@ -64,11 +64,12 @@ def send_animation():
     for i in range(3):
         oled.fill(0)
         oled.show()
-
         time.sleep(0.5)
-
-        oled.text("Sending...",60,20)
+        
+        oled.text("Sending...",20,20)
+        
         oled.show()
+        time.sleep(0.5)
 
     oled.fill(0)
     oled.show()
@@ -121,7 +122,7 @@ def type_message():
 
 def mode_menu():
     
-    mode_list = {"Internet":(10,10),"Local":(10,20),"Plactice":(10,30)}
+    mode_list = {"Internet":(5,10),"Local":(5,20),"Plactice":(5,30)}
     menu_index = 0
 
     while True:
@@ -129,15 +130,25 @@ def mode_menu():
         for i, mode in enumerate(mode_list):
             x = mode_list[mode][0]
             y = mode_list[mode][1]
-            if i == 0: 
+            if i == menu_index: 
                 oled.fill_rect(0, 9, 128, 10, 1)
                 oled.text(mode, x, y, 0) 
             else:
                 oled.text(mode,x,y)
         oled.show()
 
+        time.sleep(3)
+        break
+
+def notif_test(t):
+    oled.fill(0)
+    oled.text("NOTIF!",40,30)
+    oled.show()
+    time.sleep(3)
 
 def main():
+    t0 = Timer(0)
+    t0.init(period=5000, mode=Timer.PERIODIC, callback=notif_test)
     mode_menu()
     type_message()
 
