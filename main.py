@@ -5,19 +5,17 @@ import sys
 import urequests
 import ujson
 
-import boot_display
-import network_setting
+from utils import boot_display, network_setting, mode_menu, switch_man
 
 i2c = I2C(scl=Pin(4), sda=Pin(5))
 oled = SSD1306_I2C(128, 64, i2c)
 
-s1 = Pin(22, Pin.IN, Pin.PULL_UP)
-s2 = Pin(23, Pin.IN, Pin.PULL_UP)
-
 oled.fill(0)
 oled.show()
 
-boot_display.boot_animation()
+switchs = switch_man.switchs()
+boot_display.boot_animation(switchs)
+
 try:
     network_setting.connect_network('HUMAX-E938C','MmdhdGR3LThFM')
 except OSError:
@@ -32,7 +30,7 @@ def encode_morse(morse):
                 "_.__":"Y","__..":"Z","...._.":"!","......":"?","_.....":"(",\
                 "__....":")","___...":":",".____":"1","..___":"2","...__":"3",\
                 "...._":"4",".....":"5","_....":"6","__...":"7","___..":"8",\
-                "____.":"9","_____":"0","...._.":"!","..__..":"?","_.__.":"(","_.__._":")","___...":":","........":"del"}
+                "____.":"9","_____":"0","...._.":"!","..__..":"?","_.__.":"(","_.__._":")","___...":":","........":"del","._._._":" "}
     try:
         return morse_list[morse]
     except KeyError:
@@ -66,7 +64,7 @@ def send_animation():
         oled.show()
         time.sleep(0.5)
         
-        oled.text("Sending...",20,20)
+        oled.text("Sending...",30,25)
         
         oled.show()
         time.sleep(0.5)
@@ -75,7 +73,7 @@ def send_animation():
     oled.show()
 
 def type_message():
- 
+     
     pressing_flag = False
     p_start = time.ticks_ms()
     p_end = time.ticks_ms()
@@ -85,15 +83,19 @@ def type_message():
     buzzer = PWM(Pin(17), freq=0, duty=512)
     buzzer.deinit()             
     
+    oled.fill(0)
+    oled.show()
+    time.sleep(2)
+            
     while True:
         oled.fill(0)
         
-        if s1.value() == 0 and pressing_flag == False:
+        if switchs.s1.value() == 0 and pressing_flag == False:
             p_start = time.ticks_ms()
             pressing_flag = True
             print("PUSH!")
             buzzer = PWM(Pin(17), freq=1600, duty=512) 
-        elif s1.value() == 1 and pressing_flag == True:
+        elif switchs.s1.value() == 1 and pressing_flag == True:
             pressing_time = time.ticks_diff(time.ticks_ms(), p_start)
             p_end = time.ticks_ms()    
             pressing_flag = False
@@ -116,29 +118,12 @@ def type_message():
         oled.text(show_text,10,10)
         oled.show()
 
-        if s2.value() == 0:
+        if switchs.s2.value() == 0:
             send_message(show_text)
             show_text = ""
 
-def mode_menu():
-    
-    mode_list = {"Internet":(5,10),"Local":(5,20),"Plactice":(5,30)}
-    menu_index = 0
-
-    while True:
-        oled.fill(0)
-        for i, mode in enumerate(mode_list):
-            x = mode_list[mode][0]
-            y = mode_list[mode][1]
-            if i == menu_index: 
-                oled.fill_rect(0, 9, 128, 10, 1)
-                oled.text(mode, x, y, 0) 
-            else:
-                oled.text(mode,x,y)
-        oled.show()
-
-        time.sleep(3)
-        break
+        if switchs.s4.value() == 0:
+            break
 
 def notif_test(t):
     oled.fill(0)
@@ -147,10 +132,12 @@ def notif_test(t):
     time.sleep(3)
 
 def main():
-    t0 = Timer(0)
-    t0.init(period=5000, mode=Timer.PERIODIC, callback=notif_test)
-    mode_menu()
-    type_message()
+    #t0 = Timer(0)
+    #t0.init(period=5000, mode=Timer.PERIODIC, callback=notif_test)
+    while True:
+        menu = mode_menu.menu()
+        menu.select_mode(oled,switchs)
+        type_message()
 
 if __name__ == "__main__":
     main()

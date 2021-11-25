@@ -77,7 +77,7 @@ def start():
     
     ap = setup_ap("MB2","")
 
-    image = load_image('wifi_qr.pbm')
+    image = load_image('../images/wifi_qr.pbm')
     oled.blit(image, 35, 0)
     oled.show()
 
