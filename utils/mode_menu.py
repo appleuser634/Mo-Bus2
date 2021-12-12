@@ -34,4 +34,3 @@ class menu():
                 else:
                     oled.text(mode,x,y)
             oled.show()
-            print("mode_index:",self.menu_index)

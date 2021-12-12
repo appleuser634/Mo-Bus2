@@ -5,7 +5,7 @@ import sys
 import urequests
 import ujson
 
-from utils import boot_display, network_setting, mode_menu, switch_man
+from utils import boot_display, network_setting, mode_menu, switch_man, animation_man
 
 i2c = I2C(scl=Pin(4), sda=Pin(5))
 oled = SSD1306_I2C(128, 64, i2c)
@@ -14,10 +14,17 @@ oled.fill(0)
 oled.show()
 
 switchs = switch_man.switchs()
-boot_display.boot_animation(switchs)
+animation = animation_man.animation(oled)
+
+boot = boot_display.boot()
+boot.boot_animation(switchs,oled)
 
 try:
-    network_setting.connect_network('HUMAX-E938C','MmdhdGR3LThFM')
+    SSID = 'HUMAX-E938C'
+    PASS = 'MmdhdGR3LThFM'
+    network_setting = network_setting.network_setting(oled)
+    network_setting.connect_network(SSID,PASS)
+
 except OSError:
     sys.exit()
 
@@ -123,7 +130,7 @@ def type_message():
             show_text = ""
 
         if switchs.s4.value() == 0:
-            break
+            return True
 
 def notif_test(t):
     oled.fill(0)
@@ -134,9 +141,11 @@ def notif_test(t):
 def main():
     #t0 = Timer(0)
     #t0.init(period=5000, mode=Timer.PERIODIC, callback=notif_test)
+    menu = mode_menu.menu()
     while True:
-        menu = mode_menu.menu()
-        menu.select_mode(oled,switchs)
+        mode = menu.select_mode(oled,switchs)
+        if mode == "Local":
+            animation.animation_start("Apples",10)
         type_message()
 
 if __name__ == "__main__":
